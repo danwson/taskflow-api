@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\TaskCompleted;
+use App\Events\TaskCreated;
 use App\Models\Project;
 use App\Models\Task;
 use Illuminate\Http\JsonResponse;
@@ -31,6 +33,8 @@ class TaskController extends Controller
 
         $task = $project->tasks()->create($validated);
 
+        TaskCreated::dispatch($task);
+
         return response()->json($task->load('assignee'), 201);
     }
 
@@ -54,7 +58,12 @@ class TaskController extends Controller
             'assigned_to' => 'nullable|exists:users,id',
         ]);
 
+        $previousStatus = $task->status;
         $task->update($validated);
+
+        if ($previousStatus !== 'done' && $task->status === 'done') {
+            TaskCompleted::dispatch($task);
+        }
 
         return response()->json($task->load('assignee'));
     }
