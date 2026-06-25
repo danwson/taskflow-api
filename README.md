@@ -6,10 +6,7 @@
 
 ---
 
-<!-- Substitua pela imagem ou GIF do kanban funcionando -->
-<!-- Sugestão: capture uma tela mostrando o kanban com tasks nas 3 colunas -->
-<!-- e salve como docs/kanban.png, depois descomente a linha abaixo -->
-<!-- ![TaskFlow Kanban](docs/kanban.png) -->
+![TaskFlow Kanban](docs/kanban.png)
 
 ---
 
