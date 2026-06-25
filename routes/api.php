@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\CommentController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\WorkspaceController;
@@ -19,4 +20,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('workspaces/{workspace}/members/{user}', [WorkspaceMemberController::class, 'destroy']);
     Route::apiResource('workspaces.projects', ProjectController::class)->shallow();
     Route::apiResource('projects.tasks', TaskController::class)->shallow();
+    Route::get('tasks/{task}/comments', [CommentController::class, 'index']);
+    Route::post('tasks/{task}/comments', [CommentController::class, 'store']);
+    Route::put('comments/{comment}', [CommentController::class, 'update']);
+    Route::delete('comments/{comment}', [CommentController::class, 'destroy']);
 });
