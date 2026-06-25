@@ -1,58 +1,187 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# TaskFlow API
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+> API REST de gestão de tarefas para times, com sistema de webhooks assíncronos orientado a eventos. Workspaces colaborativos onde membros criam projetos, atribuem tarefas e recebem notificações automáticas via webhooks quando tarefas são criadas, concluídas ou comentadas.
 
-## About Laravel
+![CI](https://github.com/danwson/taskflow-api/actions/workflows/ci.yml/badge.svg)
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+<!-- Substitua pela imagem ou GIF do kanban funcionando -->
+<!-- Sugestão: capture uma tela mostrando o kanban com tasks nas 3 colunas -->
+<!-- e salve como docs/kanban.png, depois descomente a linha abaixo -->
+<!-- ![TaskFlow Kanban](docs/kanban.png) -->
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## Stack
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+| Tecnologia | Versão |
+|---|---|
+| PHP | 8.4 |
+| Laravel | 11 |
+| MySQL | 8.4 |
+| Redis | 7 |
+| Laravel Sanctum | — |
+| Docker / Docker Compose | — |
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+---
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+## Destaques técnicos
 
-## Agentic Development
+- **Sistema de webhooks orientado a eventos via Redis Queue** — eventos como `task.created` e `task.completed` disparam jobs assíncronos que fazem POST HTTP nas URLs cadastradas e registram o log de cada entrega em `webhook_deliveries`
+- **41 testes automatizados com Pest** — cobertura de todos os endpoints com banco SQLite in-memory, factories para todas as entidades e testes de autorização por policy
+- **CI/CD com GitHub Actions** — pipeline roda migrations e todos os testes a cada push no branch `master`
+- **Autorização por Policies** — cada entidade tem regras isoladas (somente dono gerencia webhooks e membros, membros criam/editam tarefas)
+- **Documentação interativa com Swagger** — todos os endpoints documentados com PHP 8 Attributes via L5-Swagger
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+---
 
-```bash
-composer require laravel/boost --dev
+## Funcionalidades
 
-php artisan boost:install
+- Autenticação via token (register, login, logout, alterar senha, excluir conta)
+- Workspaces com sistema de membros e roles (owner / member)
+- Projetos aninhados em workspaces
+- Tarefas com status (todo / in_progress / done), prioridade, prazo e responsável
+- Comentários por tarefa
+- Webhooks configuráveis por workspace com histórico de disparos
+- Dashboard web com kanban interativo
+
+---
+
+## Documentação da API
+
+Acesse a documentação interativa Swagger após subir o projeto:
+
+```
+http://localhost:8080/api/documentation
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+---
 
-## Contributing
+## Setup local com Docker
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### Pré-requisitos
+- Docker e Docker Compose instalados
 
-## Code of Conduct
+### Passo a passo
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+**1. Clone o repositório**
+```bash
+git clone https://github.com/danwson/taskflow-api.git
+cd taskflow-api
+```
 
-## Security Vulnerabilities
+**2. Configure o ambiente**
+```bash
+cp .env.example .env
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+**3. Suba os containers**
+```bash
+docker compose up -d
+```
 
-## License
+**4. Instale as dependências**
+```bash
+docker compose exec php composer install
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+**5. Gere a chave da aplicação**
+```bash
+docker compose exec php php artisan key:generate
+```
+
+**6. Rode as migrations**
+```bash
+docker compose exec php php artisan migrate
+```
+
+**7. Acesse o sistema**
+
+| Recurso | URL |
+|---|---|
+| Dashboard | http://localhost:8080 |
+| API | http://localhost:8080/api |
+| Documentação Swagger | http://localhost:8080/api/documentation |
+
+---
+
+## Setup local sem Docker (Laravel Herd / Valet)
+
+```bash
+git clone https://github.com/danwson/taskflow-api.git
+cd taskflow-api
+composer install
+cp .env.example .env
+# Ajuste DB_HOST, DB_DATABASE, REDIS_HOST no .env para sua configuração local
+php artisan key:generate
+php artisan migrate
+php artisan queue:work
+```
+
+---
+
+## Rodar os testes
+
+```bash
+# Com Docker
+docker compose exec php php artisan test
+
+# Localmente
+php artisan test
+```
+
+---
+
+## Estrutura dos eventos de webhook
+
+Quando um dos eventos abaixo ocorre, o sistema dispara um POST HTTP assíncrono para todas as URLs cadastradas no workspace que estejam inscritas naquele evento:
+
+| Evento | Quando dispara |
+|---|---|
+| `task.created` | Nova tarefa criada |
+| `task.completed` | Tarefa marcada como concluída |
+| `task.overdue` | Tarefa com prazo vencido |
+| `comment.created` | Novo comentário em uma tarefa |
+
+Exemplo de payload recebido:
+```json
+{
+  "event": "task.created",
+  "payload": {
+    "task": {
+      "id": 1,
+      "title": "Implementar autenticação",
+      "status": "todo",
+      "priority": "high",
+      "project": { "id": 1, "name": "Backend" }
+    }
+  }
+}
+```
+
+---
+
+## Endpoints principais
+
+| Método | Endpoint | Descrição |
+|---|---|---|
+| POST | `/api/auth/register` | Criar conta |
+| POST | `/api/auth/login` | Login |
+| POST | `/api/auth/logout` | Logout |
+| GET | `/api/workspaces` | Listar workspaces |
+| POST | `/api/workspaces` | Criar workspace |
+| POST | `/api/workspaces/{id}/members` | Convidar membro |
+| GET | `/api/workspaces/{id}/projects` | Listar projetos |
+| GET | `/api/projects/{id}/tasks` | Listar tarefas |
+| POST | `/api/projects/{id}/tasks` | Criar tarefa |
+| GET | `/api/tasks/{id}/comments` | Listar comentários |
+| POST | `/api/workspaces/{id}/webhooks` | Cadastrar webhook |
+
+> Lista completa disponível na documentação Swagger.
+
+---
+
+## Licença
+
+MIT
