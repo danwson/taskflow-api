@@ -215,9 +215,27 @@
         .task-card {
             background: #0f172a; border: 1px solid #1e293b;
             border-radius: 8px; padding: .75rem; margin-bottom: .5rem;
+            cursor: pointer; transition: border-color .2s;
         }
 
+        .task-card:hover { border-color: #6366f1; }
+
         .task-card h4 { font-size: .8rem; font-weight: 500; margin-bottom: .4rem; }
+
+        .status-buttons { display: flex; gap: .4rem; margin-top: .75rem; flex-wrap: wrap; }
+
+        .status-btn {
+            flex: 1; padding: .35rem .5rem; border-radius: 5px; font-size: .7rem;
+            font-weight: 600; cursor: pointer; border: 1px solid transparent;
+            transition: all .2s; text-align: center;
+        }
+
+        .status-btn.todo { background: #1e293b; color: #94a3b8; border-color: #334155; }
+        .status-btn.in_progress { background: #3b2f1a; color: #fbbf24; border-color: #92400e; }
+        .status-btn.done { background: #1e3a2f; color: #4ade80; border-color: #166534; }
+        .status-btn.active-status { opacity: 1; }
+        .status-btn:not(.active-status) { opacity: .4; }
+        .status-btn:hover { opacity: 1; }
 
         .task-meta { display: flex; gap: .4rem; flex-wrap: wrap; }
 
@@ -283,6 +301,81 @@
         .cancel-btn:hover { border-color: #ef4444; color: #ef4444; }
 
         .loading { color: #64748b; font-size: .85rem; padding: 1rem 0; }
+
+        .ws-edit-btn, .ws-del-btn {
+            opacity: 0; font-size: .75rem; color: #64748b; padding: .1rem .3rem;
+            border-radius: 4px; transition: all .2s; line-height: 1;
+        }
+        .workspace-item:hover .ws-edit-btn,
+        .workspace-item:hover .ws-del-btn { opacity: 1; }
+        .ws-edit-btn:hover { background: #334155; color: #a5b4fc; }
+        .ws-del-btn:hover { background: #3b1a1a; color: #f87171; }
+
+        .project-edit-btn, .project-del-btn {
+            opacity: 0; font-size: .8rem; color: #64748b; padding: .1rem .35rem;
+            border-radius: 4px; transition: all .2s; flex-shrink: 0;
+        }
+        .project-card:hover .project-edit-btn,
+        .project-card:hover .project-del-btn { opacity: 1; }
+        .project-edit-btn:hover { background: #334155; color: #a5b4fc; }
+        .project-del-btn:hover { background: #3b1a1a; color: #f87171; }
+
+        .task-del-btn {
+            margin-left: auto; font-size: .7rem; color: #475569;
+            padding: .15rem .4rem; border-radius: 4px; transition: all .2s;
+            opacity: 0;
+        }
+        .task-card:hover .task-del-btn { opacity: 1; }
+        .task-del-btn:hover { background: #3b1a1a; color: #f87171; }
+
+        .confirm-modal { text-align: center; }
+        .confirm-modal p { color: #94a3b8; font-size: .875rem; margin-bottom: 1.5rem; }
+        .btn-danger {
+            flex: 1; padding: .7rem; background: #ef4444; border: none;
+            border-radius: 6px; color: #fff; font-size: .9rem; font-weight: 600;
+            cursor: pointer; transition: background .2s;
+        }
+        .btn-danger:hover { background: #dc2626; }
+
+        .user-menu-trigger {
+            display: flex; align-items: center; gap: .4rem;
+            cursor: pointer; padding: .35rem .7rem;
+            border: 1px solid #334155; border-radius: 6px;
+            font-size: .85rem; transition: all .2s;
+        }
+        .user-menu-trigger:hover { border-color: #6366f1; color: #a5b4fc; }
+
+        .user-menu {
+            position: absolute; top: calc(100% + .5rem); right: 0;
+            background: #1e293b; border: 1px solid #334155;
+            border-radius: 8px; min-width: 200px; z-index: 50;
+            box-shadow: 0 8px 24px rgba(0,0,0,.4);
+        }
+
+        .user-menu-item {
+            padding: .65rem 1rem; font-size: .85rem; cursor: pointer;
+            transition: background .15s; color: #cbd5e1;
+        }
+        .user-menu-item:hover { background: #0f172a; }
+        .user-menu-item.danger { color: #f87171; }
+        .user-menu-item.danger:hover { background: #3b1a1a; }
+        .user-menu-divider { height: 1px; background: #334155; }
+
+        .comment-item {
+            background: #0f172a; border: 1px solid #1e293b;
+            border-radius: 6px; padding: .65rem .75rem; margin-bottom: .5rem;
+        }
+        .comment-meta {
+            display: flex; align-items: center; gap: .5rem;
+            font-size: .7rem; color: #64748b; margin-bottom: .35rem;
+        }
+        .comment-author { font-weight: 600; color: #94a3b8; }
+        .comment-body { font-size: .8rem; color: #cbd5e1; line-height: 1.5; }
+        .comment-del {
+            margin-left: auto; cursor: pointer; color: #475569;
+            transition: color .2s;
+        }
+        .comment-del:hover { color: #f87171; }
     </style>
 </head>
 <body>
@@ -323,6 +416,12 @@
             </div>
             <button class="btn" onclick="register()">Criar conta</button>
         </div>
+        <div style="margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid #1e293b;text-align:center">
+            <a href="/api/documentation" target="_blank" style="font-size:.8rem;color:#6366f1;text-decoration:none;display:inline-flex;align-items:center;gap:.35rem;transition:color .2s">
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                Ver documentação da API
+            </a>
+        </div>
     </div>
 </div>
 
@@ -330,9 +429,18 @@
 <div id="app-screen">
     <div class="topbar">
         <h1>⚡ TaskFlow</h1>
-        <div style="display:flex;align-items:center;gap:1rem">
-            <span id="user-name"></span>
-            <button class="logout-btn" onclick="logout()">Sair</button>
+        <div style="display:flex;align-items:center;gap:.75rem;position:relative">
+            <div class="user-menu-trigger" onclick="toggleUserMenu()">
+                <span id="user-name"></span>
+                <span style="color:#64748b;font-size:.7rem">▾</span>
+            </div>
+            <div id="user-menu" class="user-menu" style="display:none">
+                <div class="user-menu-item" onclick="closeUserMenu();openChangePassword()">🔑 Alterar senha</div>
+                <div class="user-menu-divider"></div>
+                <div class="user-menu-item danger" onclick="closeUserMenu();openDeleteAccount()">🗑 Excluir minha conta</div>
+                <div class="user-menu-divider"></div>
+                <div class="user-menu-item" onclick="closeUserMenu();logout()">→ Sair</div>
+            </div>
         </div>
     </div>
     <div class="layout">
@@ -463,7 +571,12 @@ async function loadWorkspaces() {
         workspaces.forEach(ws => {
             const el = document.createElement('div');
             el.className = 'workspace-item' + (currentWorkspace?.id === ws.id ? ' active' : '');
-            el.innerHTML = `<div class="workspace-icon">${ws.name[0].toUpperCase()}</div>${ws.name}`;
+            el.innerHTML = `
+                <div class="workspace-icon">${ws.name[0].toUpperCase()}</div>
+                <span style="flex:1">${ws.name}</span>
+                <span class="ws-edit-btn" onclick="event.stopPropagation();openEditWorkspace(${ws.id},'${ws.name.replace(/'/g,"\\'")}')">✎</span>
+                <span class="ws-del-btn" onclick="event.stopPropagation();confirmDelete('workspace',${ws.id},'${ws.name.replace(/'/g,"\\'")}')">✕</span>
+            `;
             el.onclick = () => selectWorkspace(ws);
             list.appendChild(el);
         });
@@ -503,8 +616,14 @@ function renderMainHTML(projects, tasks) {
         </div>
         <div class="projects-grid">
             ${projects.map(p => `
-                <div class="project-card ${currentProject?.id === p.id ? 'active' : ''}" onclick="selectProject(${p.id}, '${escHtml(p.name)}')">
-                    <h3>${escHtml(p.name)}</h3>
+                <div class="project-card ${currentProject?.id === p.id ? 'active' : ''}" onclick="selectProject(${p.id}, '${escHtml(p.name)}', '${escHtml(p.description || '')}')">
+                    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:.5rem">
+                        <h3>${escHtml(p.name)}</h3>
+                        <div style="display:flex;gap:.25rem" onclick="event.stopPropagation()">
+                            <span class="project-edit-btn" onclick="openEditProject(${p.id},'${escHtml(p.name)}','${escHtml(p.description || '')}')">✎</span>
+                            <span class="project-del-btn" onclick="confirmDelete('project',${p.id},'${escHtml(p.name)}')">✕</span>
+                        </div>
+                    </div>
                     <p>${escHtml(p.description || 'Sem descrição')}</p>
                 </div>
             `).join('')}
@@ -524,11 +643,21 @@ function renderMainHTML(projects, tasks) {
                             <span style="color:#475569">(${cols[status].length})</span>
                         </div>
                         ${cols[status].map(t => `
-                            <div class="task-card">
-                                <h4>${escHtml(t.title)}</h4>
+                            <div class="task-card" onclick="openEditTask(${t.id}, '${escHtml(t.title)}', '${t.status}', '${t.priority}', '${t.due_date || ''}', ${t.assigned_to || null})">
+                                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:.5rem">
+                                    <h4>${escHtml(t.title)}</h4>
+                                    <span class="task-del-btn" onclick="event.stopPropagation();confirmDelete('task',${t.id},'${escHtml(t.title)}')">✕</span>
+                                </div>
                                 <div class="task-meta">
                                     <span class="badge badge-${t.priority}">${t.priority}</span>
                                     ${t.due_date ? `<span class="badge badge-date">${t.due_date.split('T')[0]}</span>` : ''}
+                                    ${t.assignee ? `<span class="badge badge-date">👤 ${escHtml(t.assignee.name)}</span>` : ''}
+                                    ${t.comments_count > 0 ? `<span class="badge badge-date">💬 ${t.comments_count}</span>` : ''}
+                                </div>
+                                <div class="status-buttons" onclick="event.stopPropagation()">
+                                    <button class="status-btn todo ${t.status === 'todo' ? 'active-status' : ''}" onclick="updateTaskStatus(${t.id}, 'todo', '${escHtml(t.title)}', '${t.priority}')">A fazer</button>
+                                    <button class="status-btn in_progress ${t.status === 'in_progress' ? 'active-status' : ''}" onclick="updateTaskStatus(${t.id}, 'in_progress', '${escHtml(t.title)}', '${t.priority}')">Em progresso</button>
+                                    <button class="status-btn done ${t.status === 'done' ? 'active-status' : ''}" onclick="updateTaskStatus(${t.id}, 'done', '${escHtml(t.title)}', '${t.priority}')">Concluída</button>
                                 </div>
                             </div>
                         `).join('')}
@@ -540,9 +669,64 @@ function renderMainHTML(projects, tasks) {
     `;
 }
 
-async function selectProject(id, name) {
-    currentProject = { id, name };
+async function selectProject(id, name, description) {
+    currentProject = { id, name, description };
     renderMain();
+}
+
+function openEditWorkspace(id, name) {
+    const container = document.getElementById('modal-container');
+    container.innerHTML = `
+        <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+            <div class="modal">
+                <h3>Editar Workspace</h3>
+                <div class="form-group"><label>Nome</label><input type="text" id="m-name" value="${name}"></div>
+                <div class="modal-footer">
+                    <button class="cancel-btn" onclick="closeModal()">Cancelar</button>
+                    <button class="btn" onclick="saveEditWorkspace(${id})">Salvar</button>
+                </div>
+            </div>
+        </div>`;
+}
+
+async function saveEditWorkspace(id) {
+    const name = document.getElementById('m-name').value.trim();
+    if (!name) return;
+    try {
+        await api('PUT', `/workspaces/${id}`, { name });
+        if (currentWorkspace?.id === id) currentWorkspace.name = name;
+        closeModal();
+        loadWorkspaces();
+        if (currentWorkspace?.id === id) renderMain();
+    } catch {}
+}
+
+function openEditProject(id, name, description) {
+    const container = document.getElementById('modal-container');
+    container.innerHTML = `
+        <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+            <div class="modal">
+                <h3>Editar Projeto</h3>
+                <div class="form-group"><label>Nome</label><input type="text" id="m-name" value="${name}"></div>
+                <div class="form-group"><label>Descrição</label><textarea id="m-desc">${description}</textarea></div>
+                <div class="modal-footer">
+                    <button class="cancel-btn" onclick="closeModal()">Cancelar</button>
+                    <button class="btn" onclick="saveEditProject(${id})">Salvar</button>
+                </div>
+            </div>
+        </div>`;
+}
+
+async function saveEditProject(id) {
+    const name = document.getElementById('m-name').value.trim();
+    const description = document.getElementById('m-desc').value.trim();
+    if (!name) return;
+    try {
+        await api('PUT', `/projects/${id}`, { name, description });
+        if (currentProject?.id === id) currentProject = { id, name, description };
+        closeModal();
+        renderMain();
+    } catch {}
 }
 
 function escHtml(str) {
@@ -583,6 +767,9 @@ function openModal(type) {
                         <option value="high">Alta</option>
                     </select>
                 </div>
+                <div class="form-group"><label>Responsável</label>
+                    <select id="m-assignee"><option value="">Carregando membros...</option></select>
+                </div>
                 <div class="form-group"><label>Prazo</label><input type="date" id="m-due"></div>
                 <div class="modal-footer">
                     <button class="cancel-btn" onclick="closeModal()">Cancelar</button>
@@ -591,6 +778,7 @@ function openModal(type) {
             </div>`,
     };
     container.innerHTML = `<div class="modal-overlay" onclick="if(event.target===this)closeModal()">${modals[type]}</div>`;
+    if (type === 'task') loadMembersIntoSelect('m-assignee', null);
 }
 
 function closeModal() { document.getElementById('modal-container').innerHTML = ''; }
@@ -620,10 +808,273 @@ async function createTask() {
     const title = document.getElementById('m-title').value.trim();
     const priority = document.getElementById('m-priority').value;
     const due_date = document.getElementById('m-due').value || null;
+    const assigned_to = document.getElementById('m-assignee')?.value || null;
     if (!title) return;
     try {
-        await api('POST', `/projects/${currentProject.id}/tasks`, { title, priority, due_date });
+        await api('POST', `/projects/${currentProject.id}/tasks`, { title, priority, due_date, assigned_to: assigned_to || null });
         closeModal();
+        renderMain();
+    } catch {}
+}
+
+async function loadMembersIntoSelect(selectId, selectedId) {
+    try {
+        const ws = await api('GET', `/workspaces/${currentWorkspace.id}`);
+        const members = ws.members || [];
+        const sel = document.getElementById(selectId);
+        if (!sel) return;
+        sel.innerHTML = '<option value="">Sem responsável</option>' +
+            members.map(m => `<option value="${m.id}" ${m.id == selectedId ? 'selected' : ''}>${m.name}</option>`).join('');
+    } catch {}
+}
+
+function openEditTask(id, title, status, priority, due_date, assignedTo) {
+    const container = document.getElementById('modal-container');
+    container.innerHTML = `
+        <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+            <div class="modal" style="max-width:520px">
+                <h3>Editar Task</h3>
+                <div class="form-group"><label>Título</label><input type="text" id="m-title" value="${title}"></div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+                    <div class="form-group"><label>Status</label>
+                        <select id="m-status">
+                            <option value="todo" ${status === 'todo' ? 'selected' : ''}>A fazer</option>
+                            <option value="in_progress" ${status === 'in_progress' ? 'selected' : ''}>Em progresso</option>
+                            <option value="done" ${status === 'done' ? 'selected' : ''}>Concluída</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label>Prioridade</label>
+                        <select id="m-priority">
+                            <option value="low" ${priority === 'low' ? 'selected' : ''}>Baixa</option>
+                            <option value="medium" ${priority === 'medium' ? 'selected' : ''}>Média</option>
+                            <option value="high" ${priority === 'high' ? 'selected' : ''}>Alta</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+                    <div class="form-group"><label>Responsável</label>
+                        <select id="m-assignee"><option value="">Carregando...</option></select>
+                    </div>
+                    <div class="form-group"><label>Prazo</label>
+                        <input type="date" id="m-due" value="${due_date ? due_date.split('T')[0] : ''}">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="cancel-btn" onclick="closeModal()">Cancelar</button>
+                    <button class="btn" onclick="saveEditTask(${id})">Salvar</button>
+                </div>
+                <div style="margin-top:1.25rem;border-top:1px solid #334155;padding-top:1.25rem">
+                    <div style="font-size:.8rem;font-weight:600;color:#94a3b8;margin-bottom:.75rem">💬 Comentários</div>
+                    <div id="comments-list"><div class="loading">Carregando...</div></div>
+                    <div style="display:flex;gap:.5rem;margin-top:.75rem">
+                        <input type="text" id="m-comment" placeholder="Adicionar comentário..." style="flex:1;padding:.55rem .75rem;background:#0f172a;border:1px solid #334155;border-radius:6px;color:#f8fafc;font-size:.8rem;outline:none">
+                        <button class="add-btn" onclick="addComment(${id})">Enviar</button>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+    loadMembersIntoSelect('m-assignee', assignedTo);
+    loadComments(id);
+}
+
+async function saveEditTask(id) {
+    const title = document.getElementById('m-title').value.trim();
+    const status = document.getElementById('m-status').value;
+    const priority = document.getElementById('m-priority').value;
+    const due_date = document.getElementById('m-due').value || null;
+    const assigned_to = document.getElementById('m-assignee')?.value || null;
+    if (!title) return;
+    try {
+        await api('PUT', `/tasks/${id}`, { title, status, priority, due_date, assigned_to: assigned_to || null });
+        closeModal();
+        renderMain();
+    } catch {}
+}
+
+async function loadComments(taskId) {
+    const list = document.getElementById('comments-list');
+    if (!list) return;
+    try {
+        const comments = await api('GET', `/tasks/${taskId}/comments`);
+        if (!comments.length) {
+            list.innerHTML = '<div style="font-size:.75rem;color:#475569">Nenhum comentário ainda.</div>';
+            return;
+        }
+        list.innerHTML = comments.map(c => `
+            <div class="comment-item">
+                <div class="comment-meta">
+                    <span class="comment-author">${escHtml(c.author?.name || 'Usuário')}</span>
+                    <span>${new Date(c.created_at).toLocaleString('pt-BR')}</span>
+                    ${c.user_id === user.id ? `<span class="comment-del" onclick="deleteComment(${c.id}, ${taskId})">✕</span>` : ''}
+                </div>
+                <div class="comment-body">${escHtml(c.body)}</div>
+            </div>
+        `).join('');
+    } catch {
+        list.innerHTML = '<div style="font-size:.75rem;color:#475569">Erro ao carregar comentários.</div>';
+    }
+}
+
+async function addComment(taskId) {
+    const input = document.getElementById('m-comment');
+    const body = input.value.trim();
+    if (!body) return;
+    try {
+        await api('POST', `/tasks/${taskId}/comments`, { body });
+        input.value = '';
+        loadComments(taskId);
+    } catch {}
+}
+
+async function deleteComment(commentId, taskId) {
+    try {
+        await api('DELETE', `/comments/${commentId}`);
+        loadComments(taskId);
+    } catch {}
+}
+
+// ─── USER MENU ───────────────────────────────────────────────────────────────
+function toggleUserMenu() {
+    const menu = document.getElementById('user-menu');
+    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+}
+
+function closeUserMenu() {
+    document.getElementById('user-menu').style.display = 'none';
+}
+
+document.addEventListener('click', e => {
+    if (!e.target.closest('.user-menu-trigger') && !e.target.closest('.user-menu')) {
+        closeUserMenu();
+    }
+});
+
+function openChangePassword() {
+    document.getElementById('modal-container').innerHTML = `
+        <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+            <div class="modal">
+                <h3>Alterar senha</h3>
+                <div id="pwd-error" class="error-msg"></div>
+                <div class="form-group"><label>Senha atual</label><input type="password" id="m-current-pwd" placeholder="••••••••"></div>
+                <div class="form-group"><label>Nova senha</label><input type="password" id="m-new-pwd" placeholder="Mínimo 8 caracteres"></div>
+                <div class="form-group"><label>Confirmar nova senha</label><input type="password" id="m-confirm-pwd" placeholder="••••••••"></div>
+                <div class="modal-footer">
+                    <button class="cancel-btn" onclick="closeModal()">Cancelar</button>
+                    <button class="btn" onclick="saveChangePassword()">Salvar</button>
+                </div>
+            </div>
+        </div>`;
+}
+
+async function saveChangePassword() {
+    const current = document.getElementById('m-current-pwd').value;
+    const password = document.getElementById('m-new-pwd').value;
+    const confirmation = document.getElementById('m-confirm-pwd').value;
+    const errEl = document.getElementById('pwd-error');
+    errEl.style.display = 'none';
+
+    if (password !== confirmation) {
+        errEl.textContent = 'As senhas não coincidem.';
+        errEl.style.display = 'block';
+        return;
+    }
+
+    try {
+        await api('PUT', '/auth/password', {
+            current_password: current,
+            password,
+            password_confirmation: confirmation,
+        });
+        closeModal();
+    } catch (e) {
+        errEl.textContent = e.message || 'Erro ao alterar senha.';
+        errEl.style.display = 'block';
+    }
+}
+
+function openDeleteAccount() {
+    document.getElementById('modal-container').innerHTML = `
+        <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+            <div class="modal confirm-modal">
+                <h3>Excluir minha conta</h3>
+                <p>Esta ação é <strong style="color:#f87171">irreversível</strong>. Todos os seus workspaces, projetos e tarefas serão excluídos.<br><br>Digite sua senha para confirmar:</p>
+                <div id="del-error" class="error-msg"></div>
+                <div class="form-group" style="text-align:left"><label>Senha</label><input type="password" id="m-del-pwd" placeholder="••••••••"></div>
+                <div class="modal-footer">
+                    <button class="cancel-btn" onclick="closeModal()">Cancelar</button>
+                    <button class="btn-danger" onclick="confirmDeleteAccount()">Excluir minha conta</button>
+                </div>
+            </div>
+        </div>`;
+}
+
+async function confirmDeleteAccount() {
+    const password = document.getElementById('m-del-pwd').value;
+    const errEl = document.getElementById('del-error');
+    errEl.style.display = 'none';
+
+    try {
+        await api('DELETE', '/auth/account', { password });
+        localStorage.removeItem('tf_token');
+        localStorage.removeItem('tf_user');
+        token = null; user = null;
+        closeModal();
+        document.getElementById('app-screen').style.display = 'none';
+        document.getElementById('auth-screen').style.display = 'flex';
+    } catch (e) {
+        errEl.textContent = e.message || 'Senha incorreta.';
+        errEl.style.display = 'block';
+    }
+}
+
+function confirmDelete(type, id, name) {
+    const labels = { workspace: 'workspace', project: 'projeto', task: 'task' };
+    const container = document.getElementById('modal-container');
+    container.innerHTML = `
+        <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+            <div class="modal confirm-modal">
+                <h3>Excluir ${labels[type]}</h3>
+                <p>Tem certeza que deseja excluir <strong style="color:#f8fafc">${name}</strong>?<br>Esta ação não pode ser desfeita.</p>
+                <div class="modal-footer">
+                    <button class="cancel-btn" onclick="closeModal()">Cancelar</button>
+                    <button class="btn-danger" onclick="deleteItem('${type}', ${id})">Excluir</button>
+                </div>
+            </div>
+        </div>`;
+}
+
+async function deleteItem(type, id) {
+    try {
+        if (type === 'workspace') {
+            await api('DELETE', `/workspaces/${id}`);
+            if (currentWorkspace?.id === id) { currentWorkspace = null; currentProject = null; }
+            closeModal();
+            loadWorkspaces();
+            if (!currentWorkspace) {
+                document.getElementById('main-content').innerHTML = `
+                    <div class="main-empty">
+                        <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 7h18M3 12h18M3 17h18"/>
+                        </svg>
+                        <p>Selecione um workspace</p>
+                    </div>`;
+            }
+        } else if (type === 'project') {
+            await api('DELETE', `/projects/${id}`);
+            if (currentProject?.id === id) currentProject = null;
+            closeModal();
+            renderMain();
+        } else if (type === 'task') {
+            await api('DELETE', `/tasks/${id}`);
+            closeModal();
+            renderMain();
+        }
+    } catch {}
+}
+
+async function updateTaskStatus(id, status, title, priority) {
+    try {
+        await api('PUT', `/tasks/${id}`, { title, status, priority });
         renderMain();
     } catch {}
 }

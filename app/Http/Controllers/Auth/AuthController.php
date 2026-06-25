@@ -7,6 +7,7 @@ use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use OpenApi\Attributes as OA;
@@ -93,5 +94,79 @@ class AuthController extends Controller
         Auth::user()->currentAccessToken()->delete();
 
         return response()->json(['message' => 'Logged out successfully']);
+    }
+
+    #[OA\Put(
+        path: '/api/auth/password',
+        summary: 'Alterar senha',
+        security: [['bearerAuth' => []]],
+        tags: ['Auth'],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['current_password', 'password', 'password_confirmation'],
+                properties: [
+                    new OA\Property(property: 'current_password', type: 'string'),
+                    new OA\Property(property: 'password', type: 'string'),
+                    new OA\Property(property: 'password_confirmation', type: 'string'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: 'Senha alterada'),
+            new OA\Response(response: 422, description: 'Senha atual incorreta'),
+        ]
+    )]
+    public function updatePassword(Request $request): JsonResponse
+    {
+        $request->validate([
+            'current_password'  => 'required|string',
+            'password'          => 'required|string|min:8|confirmed',
+        ]);
+
+        $user = Auth::user();
+
+        if (!Hash::check($request->current_password, $user->password)) {
+            return response()->json(['message' => 'Senha atual incorreta.'], 422);
+        }
+
+        $user->update(['password' => Hash::make($request->password)]);
+
+        return response()->json(['message' => 'Senha alterada com sucesso.']);
+    }
+
+    #[OA\Delete(
+        path: '/api/auth/account',
+        summary: 'Excluir conta',
+        security: [['bearerAuth' => []]],
+        tags: ['Auth'],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['password'],
+                properties: [
+                    new OA\Property(property: 'password', type: 'string'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 204, description: 'Conta excluída'),
+            new OA\Response(response: 422, description: 'Senha incorreta'),
+        ]
+    )]
+    public function deleteAccount(Request $request): JsonResponse
+    {
+        $request->validate(['password' => 'required|string']);
+
+        $user = Auth::user();
+
+        if (!Hash::check($request->password, $user->password)) {
+            return response()->json(['message' => 'Senha incorreta.'], 422);
+        }
+
+        $user->tokens()->delete();
+        $user->delete();
+
+        return response()->json(null, 204);
     }
 }

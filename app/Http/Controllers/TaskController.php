@@ -17,7 +17,7 @@ class TaskController extends Controller
     {
         $this->authorize('viewAny', [Task::class, $project]);
 
-        return response()->json($project->tasks()->with('assignee')->get());
+        return response()->json($project->tasks()->with('assignee')->withCount('comments')->get());
     }
 
     #[OA\Post(
