@@ -21,6 +21,11 @@ class Workspace extends Model
         return $this->hasMany(Project::class);
     }
 
+    public function webhooks(): HasMany
+    {
+        return $this->hasMany(Webhook::class);
+    }
+
     public function members(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'workspace_user')
